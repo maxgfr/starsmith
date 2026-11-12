@@ -19,9 +19,9 @@ export async function runAi(
   repos: Repo[],
   state: State,
   cfg: AiConfig,
-  options: { token: string; today: string; client?: AiClient | null },
+  options: { today: string; client?: AiClient | null },
 ): Promise<void> {
-  const ai = options.client === undefined ? await openAiClient(cfg, options.token) : options.client;
+  const ai = options.client === undefined ? await openAiClient(cfg) : options.client;
   if (!ai) return;
   log.info(`AI: ${ai.label}, up to ${ai.remaining()} calls`);
   const features = new Set(cfg.features);

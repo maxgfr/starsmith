@@ -77,29 +77,20 @@ test("the call budget is enforced", async () => {
 });
 
 test("settings per provider", async () => {
-  const gh = await settingsFor(config({ ai: true }).ai, "ghs_token");
-  expect(gh).toEqual({
-    apiKey: "ghs_token",
-    model: "",
-    customEndpoint: "https://models.github.ai/inference",
-    customModel: "openai/gpt-4.1-mini",
-  });
+  await expect(settingsFor(config({ ai: true }).ai)).rejects.toThrow(/set ai-provider/);
+  await expect(settingsFor(config({ ai: true, "ai-provider": "github-models" }).ai)).rejects.toThrow(
+    /retired/,
+  );
   const anthropic = await settingsFor(
     config({ ai: true, "ai-provider": "anthropic", "ai-api-key": "sk", "ai-model": "claude-haiku-5-5" }).ai,
-    "t",
   );
   expect(anthropic).toMatchObject({ providerNpm: "@ai-sdk/anthropic", model: "claude-haiku-5-5" });
   const router = await settingsFor(
     config({ ai: true, "ai-provider": "openrouter", "ai-api-key": "sk", "ai-model": "x/y" }).ai,
-    "t",
   );
   expect(router).toMatchObject({ providerApi: "https://openrouter.ai/api/v1" });
-  await expect(settingsFor(config({ ai: true, "ai-provider": "custom" }).ai, "t")).rejects.toThrow(
-    /ai-base-url/,
-  );
-  await expect(settingsFor(config({ ai: true, "ai-provider": "openai" }).ai, "t")).rejects.toThrow(
-    /ai-api-key/,
-  );
+  await expect(settingsFor(config({ ai: true, "ai-provider": "custom" }).ai)).rejects.toThrow(/ai-base-url/);
+  await expect(settingsFor(config({ ai: true, "ai-provider": "openai" }).ai)).rejects.toThrow(/ai-api-key/);
 });
 
 test("cleanDigest strips headings, links and HTML", () => {

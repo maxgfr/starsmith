@@ -19,9 +19,9 @@ sorted by AI into categories, rebuilt daily by
 - **Scales.** GitHub stops rendering very large Markdown files, so past `split-threshold` (500 KB)
   the list becomes one file per group (per language, per AI category…) and the README an index
   showing the top repositories of each group with a link to its full file.
-- **AI that costs nothing on a normal day.** Every result is cached per repository in
-  `.starsmith/state.json`, so only new or changed stars reach the model. GitHub Models works with
-  the workflow token, with no secret to create.
+- **AI that costs almost nothing on a normal day.** Every result is cached per repository in
+  `.starsmith/state.json`, so only new or changed stars reach the model: after the first pass, a
+  day costs a few calls to a small model.
 
 ## Quick start
 
@@ -52,17 +52,17 @@ for a small list.
 ## With AI
 
 ```yaml
-permissions:
-  contents: write
-  models: read # GitHub Models, with the workflow token
-
-# …
       - uses: maxgfr/starsmith@v1
         with:
           group-by: ai-category
           ai: true
+          ai-provider: anthropic # or openai, google, mistral, openrouter, custom
+          ai-api-key: ${{ secrets.AI_API_KEY }}
           ai-language: fr # optional: categories, descriptions and digest in French
 ```
+
+Add the key under **Settings → Secrets and variables → Actions** as `AI_API_KEY`. Without a
+provider or a key, the run skips the AI with a warning and builds the list anyway.
 
 What the AI does (`ai-features`, all three by default):
 
@@ -85,7 +85,6 @@ latest small model, looked up with [llm-models](https://github.com/maxgfr/llm-mo
 
 | `ai-provider` | Needs | Default model |
 | --- | --- | --- |
-| `github-models` (default) | `permissions: models: read` | `openai/gpt-4.1-mini` |
 | `openai`, `anthropic`, `google`, `mistral` | `ai-api-key` | latest small model of the provider |
 | `openrouter` | `ai-api-key` | latest small model on OpenRouter |
 | `custom` | `ai-base-url`, `ai-model` (Ollama, vLLM, LM Studio… any OpenAI-compatible API) | — |
@@ -98,8 +97,10 @@ latest small model, looked up with [llm-models](https://github.com/maxgfr/llm-mo
           ai-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
 ```
 
-On GitHub Models' free tier, calls are spaced 4.5 s apart (`ai-min-interval-ms`). When the provider
-answers with a long `Retry-After`, the run stops the AI work and keeps what it has.
+GitHub Models was retired by GitHub on 2026-07-30, so `github-models` is no longer a provider: a
+config that still names it gets a warning and runs without AI. On a provider with a tight rate
+limit, space the calls with `ai-min-interval-ms`. When the provider answers with a long
+`Retry-After`, the run stops the AI work and keeps what it has.
 
 ## Static site and feed
 
@@ -188,7 +189,7 @@ Every option can be an input of the step, or a key of `.github/starsmith.yml` (i
 | `ai-categories` | derived once by the model |
 | `ai-batch-size` | `40` repositories per call |
 | `ai-max-calls` | `60` per run |
-| `ai-min-interval-ms` | `4500` on GitHub Models, else `0` |
+| `ai-min-interval-ms` | `0` |
 | `ai-sample-size` | `150` repositories to derive the categories |
 | `ai-digest-days` | `30` |
 | `ai-min-coverage` | `0.9` |

@@ -230,6 +230,22 @@ describe("run with AI", () => {
     expect(ai.calls).toBe(1);
   });
 
+  test("ai without a provider, or with the retired GitHub Models, skips the AI and keeps going", async () => {
+    for (const provider of [undefined, "github-models"]) {
+      const ws = tempDir();
+      const options = { ai: true, "group-by": "ai-category", ...(provider && { "ai-provider": provider }) };
+      const result = await run({
+        config: config(options),
+        workspace: ws,
+        gql: noGraphql,
+        today: "2026-11-12",
+        fetchData: fetchData(),
+      });
+      expect(result.groupBy).toBe("language");
+      expect(readFileSync(join(ws, "README.md"), "utf8")).toContain("## Rust");
+    }
+  });
+
   test("an AI failure never fails the run", async () => {
     const ws = tempDir();
     const broken = fakeAi(() => {

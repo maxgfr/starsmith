@@ -116,9 +116,7 @@ export async function run(options: RunOptions): Promise<RunResult> {
   log.info(`${repos.length} of ${data.repos.length} stars kept by the filters, ${newStars} new`);
 
   if (config.ai.enabled) {
-    await log.group("AI", () =>
-      runAi(repos, state, config.ai, { token: config.token, today, client: options.aiClient }),
-    );
+    await log.group("AI", () => runAi(repos, state, config.ai, { today, client: options.aiClient }));
   }
 
   const mode = effectiveGroupMode(config, repos, state);
