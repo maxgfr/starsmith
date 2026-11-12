@@ -272,7 +272,9 @@ bun run lint && bun run typecheck && bun test
 bun run build   # dist/index.js, committed: CI fails when it is out of date
 ```
 
-To release, publish a GitHub release `vX.Y.Z`: the `v1` tag moves to it.
+Releases are automatic: every push to `main` that passes CI runs semantic-release on the
+[conventional commits](https://www.conventionalcommits.org) (`fix:` → patch, `feat:` → minor),
+which tags `vX.Y.Z`, writes the GitHub release and moves `v1` to it.
 
 ## License
 
