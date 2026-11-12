@@ -12,7 +12,20 @@ export interface HtmlModel {
   groups: { name: string; count: number }[];
   digest: string | null;
   t: Messages;
+  /** Public URL of the site, for canonical and sharing tags. */
+  siteUrl?: string | null;
+  /** Feed and data files, relative to the page. */
+  feedHref?: string | null;
+  jsonHref?: string | null;
+  /** owner/name of the repository the list is built in. */
+  sourceRepo?: string | null;
 }
+
+const FAVICON =
+  "data:image/svg+xml," +
+  encodeURIComponent(
+    "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⭐</text></svg>",
+  );
 
 /** JSON safe inside a <script> element: no `</script>`, no HTML comment openers. */
 function scriptJson(text: string): string {
@@ -34,7 +47,9 @@ a{color:inherit}
 header{display:flex;gap:16px;align-items:flex-start;justify-content:space-between;margin-bottom:24px}
 h1{font-size:clamp(28px,4vw,40px);line-height:1.1;margin:0 0 8px;letter-spacing:-.02em}
 .lede{color:var(--muted);margin:0;max-width:65ch}
-.meta{color:var(--muted);font-size:13px;margin-top:8px}
+.meta{color:var(--muted);font-size:13px;margin-top:8px;display:flex;flex-wrap:wrap;gap:4px 14px}
+.meta a{color:var(--muted)}
+.meta a:hover{color:var(--accent)}
 .icon-btn{border:1px solid var(--line);background:var(--panel);color:var(--text);border-radius:10px;width:40px;height:40px;cursor:pointer;font-size:18px;flex:none}
 .digest{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 20px;margin-bottom:24px;box-shadow:var(--shadow)}
 .digest p{margin:.4em 0}
@@ -62,6 +77,8 @@ nav .count{font-variant-numeric:tabular-nums;opacity:.7}
 .chip:hover{color:var(--accent)}
 .badge{font-size:12px;border:1px solid var(--line);border-radius:6px;padding:0 6px}
 .empty{color:var(--muted);padding:40px 0;text-align:center}
+.empty button{margin-top:12px;border:1px solid var(--line);background:var(--panel);color:var(--text);border-radius:10px;padding:8px 14px;font:inherit;cursor:pointer}
+footer a{color:var(--accent)}
 footer{margin-top:48px;color:var(--muted);font-size:13px;text-align:center}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 @media (max-width:820px){.layout{grid-template-columns:1fr}nav{display:none}#group-select{display:block}.controls{grid-template-columns:1fr 1fr}.controls input[type=search]{grid-column:1/-1}}
@@ -91,6 +108,7 @@ const nav=$("nav");
 const navButtons=[];
 const addGroup=(name,label,count)=>{const b=el("button",{type:"button","aria-pressed":String(state.group===name),onclick:()=>{state.group=name;sync()}},el("span",{text:label}),el("span",{class:"count",text:String(count)}));navButtons.push([name,b]);nav.append(b);groupSel.append(el("option",{value:name,text:label+" ("+count+")"}))};
 addGroup("",T.allGroups,D.repos.length);
+$("#clear").addEventListener("click",()=>{Object.assign(state,{q:"",group:"",lang:"",hideArchived:false});q.value="";langSel.value="";arch.checked=false;sync()});
 for(const g of D.groups) addGroup(g.name,g.name,g.count);
 groupSel.value=state.group;
 
@@ -182,24 +200,57 @@ export function renderHtml(model: HtmlModel): string {
   const json = scriptJson(JSON.stringify(data)).replace('"__REPOS__"', scriptJson(reposToLines(model.repos)));
   const description =
     model.description || format(t.defaultDescription, { tool: `[${TOOL_NAME}](${TOOL_URL})` });
+  const plain = escapeHtml(stripLinks(description));
+  const title = escapeHtml(model.title);
   const lang = escapeHtml(model.locale);
+  const languages = new Set(model.repos.map((r) => r.language).filter(Boolean)).size;
+  const summary = format(t.html.summary, {
+    count: model.repos.length.toLocaleString(model.locale),
+    languages,
+    groups: model.groups.length,
+  });
+  const user = escapeHtml(model.username);
+  const links = [
+    `<a href="https://github.com/${user}?tab=stars">${escapeHtml(t.html.stars)} ↗</a>`,
+    model.feedHref ? `<a href="${escapeHtml(model.feedHref)}">${escapeHtml(t.html.feed)}</a>` : "",
+    model.jsonHref ? `<a href="${escapeHtml(model.jsonHref)}">${escapeHtml(t.html.data)}</a>` : "",
+    model.sourceRepo
+      ? `<a href="https://github.com/${escapeHtml(model.sourceRepo)}">${escapeHtml(t.html.source)} ↗</a>`
+      : "",
+  ].filter(Boolean);
+  const site = model.siteUrl ? escapeHtml(model.siteUrl) : "";
+  const head = [
+    `<meta name="description" content="${plain}">`,
+    `<meta name="generator" content="${TOOL_NAME}">`,
+    '<meta name="theme-color" content="#b4531c">',
+    `<link rel="icon" href="${FAVICON}">`,
+    `<meta property="og:type" content="website">`,
+    `<meta property="og:title" content="${title}">`,
+    `<meta property="og:description" content="${plain}">`,
+    '<meta name="twitter:card" content="summary">',
+    site ? `<link rel="canonical" href="${site}">` : "",
+    site ? `<meta property="og:url" content="${site}">` : "",
+    model.feedHref
+      ? `<link rel="alternate" type="application/atom+xml" title="${title}" href="${escapeHtml(model.feedHref)}">`
+      : "",
+  ].filter(Boolean);
+  const promo = format(escapeHtml(t.html.makeYourOwn), { tool: `<a href="${TOOL_URL}">${TOOL_NAME}</a>` });
   return `<!DOCTYPE html>
 <html lang="${lang}">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>${escapeHtml(model.title)}</title>
-<meta name="description" content="${escapeHtml(stripLinks(description))}">
-<meta name="generator" content="${TOOL_NAME}">
+<title>${title}</title>
+${head.join("\n")}
 <style>${STYLE.trim()}</style>
 </head>
 <body>
 <div class="wrap">
 <header>
 <div>
-<h1>${escapeHtml(model.title)}</h1>
+<h1>${title}</h1>
 <p class="lede">${inlineHtml(description)}</p>
-<p class="meta">${escapeHtml(format(t.html.results, { count: model.repos.length }))} · ${escapeHtml(t.updated)} ${UPDATED} · <a href="https://github.com/${escapeHtml(model.username)}?tab=stars">@${escapeHtml(model.username)}</a></p>
+<p class="meta"><span>${escapeHtml(summary)}</span><span>${escapeHtml(t.updated)} ${UPDATED}</span>${links.map((l) => `<span>${l}</span>`).join("")}</p>
 </div>
 <button id="theme" class="icon-btn" type="button" aria-label="${escapeHtml(t.html.theme)}" title="${escapeHtml(t.html.theme)}">◐</button>
 </header>
@@ -208,7 +259,7 @@ ${model.digest ? `<section class="digest" aria-label="${escapeHtml(t.digest)}">$
 <input id="q" type="search" placeholder="${escapeHtml(t.html.search)}" aria-label="${escapeHtml(t.html.search)}" autocomplete="off">
 <select id="group-select" aria-label="${escapeHtml(t.html.allGroups)}"></select>
 <select id="lang" aria-label="${escapeHtml(t.html.allLanguages)}"><option value="">${escapeHtml(t.html.allLanguages)}</option></select>
-<select id="sort" aria-label="Sort">
+<select id="sort" aria-label="${escapeHtml(t.html.sort)}">
 <option value="stars">${escapeHtml(t.html.sortStars)}</option>
 <option value="starred">${escapeHtml(t.html.sortStarred)}</option>
 <option value="pushed">${escapeHtml(t.html.sortPushed)}</option>
@@ -221,11 +272,11 @@ ${model.digest ? `<section class="digest" aria-label="${escapeHtml(t.digest)}">$
 <main>
 <p id="status" class="status" aria-live="polite"></p>
 <div id="grid" class="grid"></div>
-<p id="empty" class="empty" hidden>${escapeHtml(t.html.noResults)}</p>
+<div id="empty" class="empty" hidden><p>${escapeHtml(t.html.noResults)}</p><button id="clear" type="button">${escapeHtml(t.html.clear)}</button></div>
 <div id="more"></div>
 </main>
 </div>
-<footer>${escapeHtml(format(t.generatedBy, { tool: "" }))}<a href="${TOOL_URL}">${TOOL_NAME}</a></footer>
+<footer>${promo}</footer>
 </div>
 <script type="application/json" id="data">${json}</script>
 <script>${SCRIPT.trim()}</script>

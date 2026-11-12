@@ -21,6 +21,7 @@ export const fr: Messages = {
   seeAll: "→ Les {count} dépôts",
   andMore: "…et {count} de plus.",
   generatedBy: "Généré par {tool}",
+  searchSite: "🔎 Rechercher parmi les {count} stars",
   total: "Total",
   updated: "Mis à jour",
   columns: {
@@ -54,6 +55,14 @@ export const fr: Messages = {
     noResults: "Aucun dépôt ne correspond.",
     theme: "Basculer le mode sombre",
     homepage: "Site",
+    sort: "Trier",
+    clear: "Effacer les filtres",
+    summary: "{count} dépôts · {languages} langages · {groups} groupes",
+    feed: "Flux RSS",
+    data: "Données JSON",
+    source: "Source",
+    stars: "Stars sur GitHub",
+    makeYourOwn: "Crée ta propre liste de stars avec {tool}",
   },
   feedTitle: "Dernières stars GitHub de {user}",
 };

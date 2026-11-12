@@ -143,11 +143,14 @@ export async function run(options: RunOptions): Promise<RunResult> {
     pinned,
     recent,
     digest,
+    siteUrl: config.siteUrl || undefined,
   });
   const labelOf = (name: string) => groupLabel(name, t);
   const json = jsonRepos(groups, labelOf, config.starFormat);
   if (config.jsonOutput) outputs.push({ path: config.jsonOutput, contents: renderJson(username, json) });
   if (config.htmlOutput) {
+    const htmlDir = posix.dirname(safePath(config.htmlOutput));
+    const relative = (path: string) => (path ? posix.relative(htmlDir, safePath(path)) : null);
     outputs.push({
       path: config.htmlOutput,
       contents: renderHtml({
@@ -159,14 +162,24 @@ export async function run(options: RunOptions): Promise<RunResult> {
         groups: groups.map((g) => ({ name: labelOf(g.name), count: g.entries.length })),
         digest: digest?.text ?? null,
         t,
+        siteUrl: config.siteUrl || null,
+        feedHref: relative(config.feedOutput),
+        jsonHref: relative(config.jsonOutput),
+        sourceRepo: options.repository ?? null,
       }),
     });
   }
+  // GitHub Pages runs Jekyll on a branch source unless told not to.
+  if (config.siteDir) outputs.push({ path: `${config.siteDir}/.nojekyll`, contents: "" });
   if (config.feedOutput) {
     const feedEntries = byStarredDesc(entries).slice(0, config.feedSize);
     outputs.push({
       path: config.feedOutput,
-      contents: renderFeed(feedEntries, { username, siteUrl: `https://github.com/${username}?tab=stars`, t }),
+      contents: renderFeed(feedEntries, {
+        username,
+        siteUrl: config.siteUrl || `https://github.com/${username}?tab=stars`,
+        t,
+      }),
     });
   }
 

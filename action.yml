@@ -144,6 +144,12 @@ inputs:
     description: "Markdown added before the credit line."
     required: false
 
+  site-dir:
+    description: "Write a searchable website here (index.html, stars.json, feed.xml), e.g. docs. Deploy it with GitHub Pages."
+    required: false
+  site-url:
+    description: "Public URL of the site, e.g. https://you.github.io/awesome-stars/. Adds a search link to the Markdown and sharing tags to the site."
+    required: false
   html-output:
     description: "Also write a searchable single-page site here, e.g. docs/index.html for GitHub Pages."
     required: false
