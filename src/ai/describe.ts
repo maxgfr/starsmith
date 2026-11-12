@@ -3,6 +3,7 @@ import { z } from "zod";
 import type { AiConfig } from "../config.js";
 import { log } from "../log.js";
 import { hash, type State } from "../state.js";
+import { truncate } from "../text.js";
 import type { Repo } from "../types.js";
 import { AiCallError, type AiClient, BudgetExhausted } from "./client.js";
 import { chunks, repoLine, UNTRUSTED_NOTE } from "./prompt.js";
@@ -19,7 +20,7 @@ export function cleanDescription(text: string): string | null {
     .replace(/^["'“”]+|["'“”]+$/g, "")
     .trim();
   if (!value) return null;
-  return value.length > MAX_LENGTH ? `${value.slice(0, MAX_LENGTH - 1).trimEnd()}…` : value;
+  return value.length > MAX_LENGTH ? `${truncate(value, MAX_LENGTH - 1).trimEnd()}…` : value.toWellFormed();
 }
 
 /** The AI description stored for a repository, if it was written from its current description. */

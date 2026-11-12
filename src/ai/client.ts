@@ -155,8 +155,9 @@ export function createAiClient(
       call(async () => {
         const result = await generateText({
           model,
-          system,
-          prompt,
+          // Repository text can hold lone surrogates, which some APIs reject as invalid JSON.
+          system: system.toWellFormed(),
+          prompt: prompt.toWellFormed(),
           output: Output.object({ schema }),
           maxRetries: 0,
         });
@@ -164,7 +165,12 @@ export function createAiClient(
       }),
     text: ({ system, prompt }) =>
       call(async () => {
-        const result = await generateText({ model, system, prompt, maxRetries: 0 });
+        const result = await generateText({
+          model,
+          system: system.toWellFormed(),
+          prompt: prompt.toWellFormed(),
+          maxRetries: 0,
+        });
         return result.text;
       }),
   };

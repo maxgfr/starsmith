@@ -4,6 +4,7 @@ import type { AiConfig } from "../config.js";
 import { OTHERS } from "../constants.js";
 import { log } from "../log.js";
 import { hash, type State, type Taxonomy } from "../state.js";
+import { truncate } from "../text.js";
 import type { Repo } from "../types.js";
 import { AiCallError, type AiClient, BudgetExhausted } from "./client.js";
 import { chunks, repoLine, UNTRUSTED_NOTE } from "./prompt.js";
@@ -14,11 +15,13 @@ function cleanCategories(names: string[]): string[] {
   const seen = new Set<string>();
   const out: string[] = [];
   for (const raw of names) {
-    const name = raw
-      .replace(/\s+/g, " ")
-      .replace(/[*_`#|[\]]/g, "")
-      .trim()
-      .slice(0, 40);
+    const name = truncate(
+      raw
+        .replace(/\s+/g, " ")
+        .replace(/[*_`#|[\]]/g, "")
+        .trim(),
+      40,
+    );
     const key = name.toLowerCase();
     if (!name || seen.has(key) || /^(other|others|misc|miscellaneous)$/i.test(name)) continue;
     seen.add(key);

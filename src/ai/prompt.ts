@@ -1,11 +1,12 @@
+import { truncate } from "../text.js";
 import type { Repo } from "../types.js";
 
 /** One compact line per repository: what a model needs to place it, within free-tier token limits. */
 export function repoLine(repo: Repo, n: number, maxDescription = 110): string {
-  const desc = repo.description ? repo.description.slice(0, maxDescription) : "(no description)";
+  const desc = repo.description ? truncate(repo.description, maxDescription) : "(no description)";
   const topics = repo.topics.slice(0, 6).join(", ");
   const lang = repo.language ? ` [${repo.language}]` : "";
-  return `${n}. ${repo.nameWithOwner}${lang}: ${desc}${topics ? ` (topics: ${topics})` : ""}`;
+  return `${n}. ${repo.nameWithOwner}${lang}: ${desc}${topics ? ` (topics: ${topics})` : ""}`.toWellFormed();
 }
 
 export const UNTRUSTED_NOTE =
