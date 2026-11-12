@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - run: bun run lint
+      - run: bun run typecheck
+      - run: bun test
+      - name: dist/ is up to date
+        run: |
+          bun run build
+          git diff --exit-code --stat dist/ || {
+            echo "::error::dist/ is out of date: run 'bun run build' and commit it"
+            exit 1
+          }
+
+  # The Action itself, on a small slice of real stars, without committing.
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - id: stars
+        uses: ./
+        with:
+          dry-run: true
+          languages: zig,nim
+          html-output: site/index.html
+      - run: test "${{ steps.stars.outputs.total }}" -gt 0

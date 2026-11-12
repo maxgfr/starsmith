@@ -1,0 +1,222 @@
+name: "starsmith"
+description: "Turn your GitHub stars into a curated awesome list: Markdown, static site, feed, with optional AI categories"
+author: "maxgfr"
+
+branding:
+  icon: "star"
+  color: "yellow"
+
+# Only `token` has a default here: every other option falls back to `.github/starsmith.yml`,
+# then to the defaults listed in each description, so the config file is never overridden by
+# a default the user did not set.
+inputs:
+  token:
+    description: "Token to read stars and commit. The workflow's GITHUB_TOKEN works (contents: write; models: read for GitHub Models)."
+    required: false
+    default: ${{ github.token }}
+  config:
+    description: "Path of the YAML config file, relative to the repository. Default: .github/starsmith.yml (optional)."
+    required: false
+  username:
+    description: "Whose stars to list. Default: the repository owner."
+    required: false
+  output:
+    description: "Markdown file to write. Default: README.md."
+    required: false
+  title:
+    description: "Title of the list. Default: Awesome Stars."
+    required: false
+  description:
+    description: "Line under the title. Default: a short credit line."
+    required: false
+  locale:
+    description: "Language of the fixed texts (headings, legend, site): en or fr. Default: en."
+    required: false
+  message:
+    description: "Commit message. Default: chore: update starred repositories."
+    required: false
+  branch:
+    description: "Branch to commit to. Default: the branch the workflow runs on, else the default branch."
+    required: false
+  commit:
+    description: "Commit the changes (signed by GitHub, through the API). false only writes the files, for a later step. Default: true."
+    required: false
+  dry-run:
+    description: "Compute and report the changes without writing or committing anything. Default: false."
+    required: false
+
+  group-by:
+    description: "language, topic, list (your GitHub star lists), ai-category or none. Default: language."
+    required: false
+  sort:
+    description: "Order inside a group: stars, name, starred-at or pushed-at. Default: stars."
+    required: false
+  order:
+    description: "desc or asc. Default: desc."
+    required: false
+  format:
+    description: "table or list. Default: table."
+    required: false
+  columns:
+    description: "Comma-separated columns among index, name, description, author, stars, language, topics, license, pushed, starred. Default: name,description,author,stars."
+    required: false
+  star-format:
+    description: "compact (12.3k: the file changes far less often) or exact. Default: compact."
+    required: false
+  collapse-threshold:
+    description: "Fold groups bigger than this into <details>. 0 never folds. Default: 0."
+    required: false
+  split:
+    description: "auto (one file per group once the list passes split-threshold), always or never. Default: auto."
+    required: false
+  split-dir:
+    description: "Folder of the per-group files, next to output. Default: stars."
+    required: false
+  split-threshold:
+    description: "Size in KB past which split: auto writes one file per group; the index stays under it too. Default: 500."
+    required: false
+  split-preview:
+    description: "When split, entries of each group kept in the index, followed by a link to the group's file. 0 keeps only the links. Default: 5."
+    required: false
+  max-per-group:
+    description: "Keep only the first N repositories of each group. 0 keeps all. Default: 0."
+    required: false
+  min-group-size:
+    description: "Fold groups smaller than this into Others. Default: 1."
+    required: false
+  topic-groups:
+    description: "With group-by: topic, how many topics become groups. Default: 40."
+    required: false
+
+  exclude-archived:
+    description: "Leave out archived repositories. Default: false."
+    required: false
+  exclude-forks:
+    description: "Leave out forks. Default: false."
+    required: false
+  exclude-own:
+    description: "Leave out your own repositories. Default: false."
+    required: false
+  min-stars:
+    description: "Leave out repositories with fewer stars. Default: 0."
+    required: false
+  include:
+    description: "Keep only owner/name matching these globs (comma or newline separated, * wildcard)."
+    required: false
+  exclude:
+    description: "Leave out owner/name matching these globs."
+    required: false
+  exclude-topics:
+    description: "Leave out repositories with any of these topics."
+    required: false
+  languages:
+    description: "Keep only these primary languages."
+    required: false
+
+  badges:
+    description: "Badges after names, among archived, stale, new, fork. Default: archived,stale."
+    required: false
+  stale-days:
+    description: "Days without a push before a repository is stale. Default: 730."
+    required: false
+  new-days:
+    description: "Days a star counts as new. Default: 30."
+    required: false
+  recent-count:
+    description: "Size of the Recently starred section. 0 hides it. Default: 10."
+    required: false
+  stats:
+    description: "Show totals and charts (Mermaid). Default: true."
+    required: false
+  toc:
+    description: "Show the table of contents. Default: true."
+    required: false
+  back-to-top:
+    description: "Show a back-to-top link after each group. Default: true."
+    required: false
+  pinned:
+    description: "owner/name of repositories to feature in a Pinned section at the top."
+    required: false
+  header:
+    description: "Markdown replacing the default title block."
+    required: false
+  footer:
+    description: "Markdown added before the credit line."
+    required: false
+
+  html-output:
+    description: "Also write a searchable single-page site here, e.g. docs/index.html for GitHub Pages."
+    required: false
+  json-output:
+    description: "Also write the data as JSON here, e.g. stars.json."
+    required: false
+  feed-output:
+    description: "Also write an Atom feed of the latest stars here, e.g. feed.xml."
+    required: false
+  feed-size:
+    description: "Entries in the feed. Default: 50."
+    required: false
+
+  ai:
+    description: "Enable the AI features. Default: false."
+    required: false
+  ai-provider:
+    description: "github-models (no secret needed), openai, anthropic, google, mistral, openrouter or custom (OpenAI-compatible: Ollama, vLLM…). Default: github-models."
+    required: false
+  ai-model:
+    description: "Model id. Default: openai/gpt-4.1-mini on GitHub Models, else the provider's latest small model (from llm-models)."
+    required: false
+  ai-api-key:
+    description: "API key of the provider. Default: token, for GitHub Models."
+    required: false
+  ai-base-url:
+    description: "Base URL: required for custom, optional for a proxy or gateway."
+    required: false
+  ai-features:
+    description: "Comma-separated: categorize, describe (one-line rewrite, translated), digest (summary of recent stars). Default: all three."
+    required: false
+  ai-language:
+    description: "Language of AI text. Default: locale."
+    required: false
+  ai-categories:
+    description: "Your own categories (comma or newline separated). Default: derived by the model once, then kept."
+    required: false
+  ai-batch-size:
+    description: "Repositories per AI call. Default: 40."
+    required: false
+  ai-max-calls:
+    description: "Most AI calls per run; work left continues on the next run. Default: 60."
+    required: false
+  ai-min-interval-ms:
+    description: "Minimum delay between AI calls. Default: 4500 on GitHub Models (free tier rate limit), else 0."
+    required: false
+  ai-refresh:
+    description: "Derive the categories and the digest again. Default: false."
+    required: false
+  ai-sample-size:
+    description: "Repositories shown to the model to derive the categories. Default: 150."
+    required: false
+  ai-digest-days:
+    description: "Window of the digest, in days. Default: 30."
+    required: false
+  ai-min-coverage:
+    description: "Share of categorized stars (0 to 1) before group-by: ai-category takes over from languages. Default: 0.9."
+    required: false
+
+outputs:
+  changed:
+    description: "true when a file changed."
+  total:
+    description: "Repositories listed."
+  new-stars:
+    description: "Stars added since the previous run."
+  group-by:
+    description: "Grouping used (ai-category falls back to language until categories cover enough stars)."
+  files:
+    description: "Files written, one per line."
+  commit-sha:
+    description: "SHA of the commit, when one was made."
+
+runs:
+  using: "node24"
+  main: "dist/index.js"

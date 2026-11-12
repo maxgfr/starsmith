@@ -1,0 +1,40 @@
+{
+  "name": "starsmith",
+  "private": true,
+  "description": "GitHub Action that turns your GitHub stars into a curated awesome list, with optional AI categories, summaries and a static site",
+  "author": "maxgfr",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "build": "bun run scripts/build.ts",
+    "test": "bun test",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "typecheck": "tsc --noEmit",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "@actions/core": "^3.0.1",
+    "@ai-sdk/anthropic": "^4.0.102",
+    "@ai-sdk/google": "^4.0.118",
+    "@ai-sdk/mistral": "^4.0.84",
+    "@ai-sdk/openai": "^4.0.115",
+    "@ai-sdk/openai-compatible": "^3.0.90",
+    "@octokit/graphql": "^9.0.5",
+    "ai": "^7.0.170",
+    "llm-connect": "^2.10.0",
+    "llm-models": "^1.16.0",
+    "yaml": "^2.9.1",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.6.7",
+    "@types/node": "^26.6.6",
+    "bun-types": "^1.4.4",
+    "esbuild": "^0.28.2",
+    "typescript": "^7.0.2"
+  }
+}
