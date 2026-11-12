@@ -3,6 +3,7 @@ import type { AiConfig } from "../config.js";
 import { log } from "../log.js";
 import { byStarredDesc } from "../pipeline/sort.js";
 import type { State } from "../state.js";
+import { truncate } from "../text.js";
 import type { Repo } from "../types.js";
 import type { AiClient } from "./client.js";
 import { repoLine, UNTRUSTED_NOTE } from "./prompt.js";
@@ -18,15 +19,15 @@ export function digestWindow(repos: Repo[], cfg: AiConfig, today: string): Repo[
 
 /** Model text made safe for the README: no headings, links, HTML or runaway length. */
 export function cleanDigest(text: string): string {
-  return text
+  const cleaned = text
     .replace(/<[^>]*>/g, "")
     .replace(/!?\[([^\]]*)]\([^)]*\)/g, "$1")
     .split("\n")
     .filter((line) => !/^\s*#/.test(line))
     .join("\n")
     .replace(/\n{3,}/g, "\n\n")
-    .trim()
-    .slice(0, 1500);
+    .trim();
+  return truncate(cleaned, 1500);
 }
 
 /** Whether the stored digest is out of date: newer stars, another language, or a refresh. */
