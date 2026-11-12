@@ -11,7 +11,7 @@ branding:
 # a default the user did not set.
 inputs:
   token:
-    description: "Token to read stars and commit. The workflow's GITHUB_TOKEN works (contents: write; models: read for GitHub Models)."
+    description: "Token to read stars and commit. The workflow's GITHUB_TOKEN works (permissions: contents: write)."
     required: false
     default: ${{ github.token }}
   config:
@@ -161,13 +161,13 @@ inputs:
     description: "Enable the AI features. Default: false."
     required: false
   ai-provider:
-    description: "github-models (no secret needed), openai, anthropic, google, mistral, openrouter or custom (OpenAI-compatible: Ollama, vLLM…). Default: github-models."
+    description: "openai, anthropic, google, mistral, openrouter or custom (OpenAI-compatible: Ollama, vLLM…). Required with ai: true. (github-models was retired by GitHub on 2026-07-30.)"
     required: false
   ai-model:
-    description: "Model id. Default: openai/gpt-4.1-mini on GitHub Models, else the provider's latest small model (from llm-models)."
+    description: "Model id. Default: the provider's latest small model (from llm-models)."
     required: false
   ai-api-key:
-    description: "API key of the provider. Default: token, for GitHub Models."
+    description: "API key of the provider, from a secret. Optional for custom (local servers)."
     required: false
   ai-base-url:
     description: "Base URL: required for custom, optional for a proxy or gateway."
@@ -188,7 +188,7 @@ inputs:
     description: "Most AI calls per run; work left continues on the next run. Default: 60."
     required: false
   ai-min-interval-ms:
-    description: "Minimum delay between AI calls. Default: 4500 on GitHub Models (free tier rate limit), else 0."
+    description: "Minimum delay between AI calls, for tight rate limits. Default: 0."
     required: false
   ai-refresh:
     description: "Derive the categories and the digest again. Default: false."

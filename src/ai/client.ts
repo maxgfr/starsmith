@@ -3,7 +3,7 @@ import { describeError, type LlmError, type LlmSettings, loadModel } from "llm-c
 import { latestModels } from "llm-models/browser";
 import type { z } from "zod";
 import type { AiConfig } from "../config.js";
-import { GITHUB_MODELS_DEFAULT_MODEL, GITHUB_MODELS_ENDPOINT, OPENROUTER_ENDPOINT } from "../constants.js";
+import { OPENROUTER_ENDPOINT } from "../constants.js";
 import { log } from "../log.js";
 
 /** The run's AI call budget is spent, or the provider's quota is: stop and resume next run. */
@@ -53,15 +53,16 @@ export async function defaultModelFor(provider: string): Promise<string | null> 
 }
 
 /** The llm-connect settings the AI config points to. */
-export async function settingsFor(ai: AiConfig, token: string): Promise<LlmSettings> {
+export async function settingsFor(ai: AiConfig): Promise<LlmSettings> {
   switch (ai.provider) {
+    case undefined:
+      throw new Error(
+        "set ai-provider (openai, anthropic, google, mistral, openrouter or custom) and ai-api-key",
+      );
     case "github-models":
-      return {
-        apiKey: ai.apiKey || token,
-        model: "",
-        customEndpoint: ai.baseUrl || GITHUB_MODELS_ENDPOINT,
-        customModel: ai.model || GITHUB_MODELS_DEFAULT_MODEL,
-      };
+      throw new Error(
+        "GitHub Models was retired by GitHub on 2026-07-30: set ai-provider to another provider and its ai-api-key",
+      );
     case "custom":
       if (!ai.baseUrl)
         throw new Error("ai-provider: custom needs ai-base-url (an OpenAI-compatible endpoint)");
@@ -170,11 +171,9 @@ export function createAiClient(
 }
 
 /** The AI client for the config, or null (with a warning) when it cannot be set up. */
-export async function openAiClient(ai: AiConfig, token: string): Promise<AiClient | null> {
+export async function openAiClient(ai: AiConfig): Promise<AiClient | null> {
   try {
-    const settings = await settingsFor(ai, token);
-    if (!settings.apiKey && ai.provider !== "custom")
-      throw new Error("no API key (set ai-api-key, or token for GitHub Models)");
+    const settings = await settingsFor(ai);
     const model = await loadModel(settings);
     const id = settings.customModel || settings.model;
     return createAiClient(model, {

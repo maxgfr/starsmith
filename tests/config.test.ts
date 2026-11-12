@@ -12,8 +12,8 @@ describe("resolveConfig", () => {
     expect(c.starFormat).toBe("compact");
     expect(c.columns).toEqual(["name", "description", "author", "stars"]);
     expect(c.ai.enabled).toBe(false);
-    expect(c.ai.provider).toBe("github-models");
-    expect(c.ai.minIntervalMs).toBe(4500);
+    expect(c.ai.provider).toBeUndefined();
+    expect(c.ai.minIntervalMs).toBe(0);
     expect(c.ai.language).toBe("en");
   });
 

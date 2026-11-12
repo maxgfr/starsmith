@@ -62,6 +62,7 @@ export const COLUMNS = [
 ] as const;
 export const BADGES = ["archived", "stale", "new", "fork"] as const;
 export const AI_PROVIDERS = [
+  // Retired by GitHub on 2026-07-30: still accepted so old configs get a clear warning.
   "github-models",
   "openai",
   "anthropic",
@@ -130,7 +131,11 @@ const schema = z.object({
   "feed-size": int(50, 1),
 
   ai: bool(false),
-  "ai-provider": choice(AI_PROVIDERS, "github-models"),
+  // No default: there is no free provider left (GitHub Models was retired on 2026-07-30).
+  "ai-provider": z.preprocess(
+    (v) => (v === undefined || v === null || v === "" ? undefined : String(v).trim().toLowerCase()),
+    z.enum(AI_PROVIDERS).optional(),
+  ),
   "ai-model": str(),
   "ai-api-key": str(),
   "ai-base-url": str(),
@@ -212,7 +217,8 @@ export interface Config {
 
 export interface AiConfig {
   enabled: boolean;
-  provider: (typeof AI_PROVIDERS)[number];
+  /** Unset until the user picks one. */
+  provider: (typeof AI_PROVIDERS)[number] | undefined;
   model: string;
   apiKey: string;
   baseUrl: string;
@@ -221,7 +227,7 @@ export interface AiConfig {
   categories: string[];
   batchSize: number;
   maxCalls: number;
-  /** Minimum delay between two calls; GitHub Models' free tier allows about 15 a minute. */
+  /** Minimum delay between two calls, for providers with a tight rate limit. */
   minIntervalMs: number;
   refresh: boolean;
   sampleSize: number;
@@ -290,7 +296,7 @@ function toConfig(p: Parsed): Config {
       categories: p["ai-categories"],
       batchSize: p["ai-batch-size"],
       maxCalls: p["ai-max-calls"],
-      minIntervalMs: p["ai-min-interval-ms"] ?? (provider === "github-models" ? 4500 : 0),
+      minIntervalMs: p["ai-min-interval-ms"] ?? 0,
       refresh: p["ai-refresh"],
       sampleSize: p["ai-sample-size"],
       digestDays: p["ai-digest-days"],
