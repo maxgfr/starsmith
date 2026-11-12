@@ -1,7 +1,8 @@
-import { describe, expect, test } from "bun:test";
+import { describe, expect, spyOn, test } from "bun:test";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { STATE_PATH } from "../src/constants.js";
+import { log } from "../src/log.js";
 import { run, safePath } from "../src/run.js";
 import type { Repo } from "../src/types.js";
 import { config, fakeAi, noGraphql, REPOS, repo, tempDir } from "./helpers.js";
@@ -271,6 +272,20 @@ describe("run with AI", () => {
       });
       expect(result.groupBy).toBe("language");
       expect(readFileSync(join(ws, "README.md"), "utf8")).toContain("## Rust");
+    }
+  });
+
+  test("without a provider, the coverage warning says what to fix", async () => {
+    const warn = spyOn(log, "warn").mockImplementation(() => {});
+    try {
+      await go(tempDir(), { ai: true, "group-by": "ai-category" });
+      const messages = warn.mock.calls.map((call) => String(call[0]));
+      expect(messages.some((m) => m.includes("cannot progress without ai-provider and ai-api-key"))).toBe(
+        true,
+      );
+      expect(messages.some((m) => m.includes("until then"))).toBe(false);
+    } finally {
+      warn.mockRestore();
     }
   });
 

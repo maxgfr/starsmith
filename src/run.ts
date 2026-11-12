@@ -64,8 +64,13 @@ function effectiveGroupMode(config: Config, repos: Repo[], state: State): GroupM
   }
   const coverage = categoryCoverage(repos, state);
   if (coverage < config.ai.minCoverage) {
+    const pct = `${Math.round(coverage * 100)}% of the stars (ai-min-coverage: ${Math.round(config.ai.minCoverage * 100)}%)`;
+    // Without a usable provider the coverage cannot grow: say what to fix, not "until then".
+    const usable = config.ai.provider !== undefined && config.ai.provider !== "github-models";
     log.warn(
-      `AI categories cover ${Math.round(coverage * 100)}% of the stars (ai-min-coverage: ${Math.round(config.ai.minCoverage * 100)}%); grouping by language until then`,
+      usable
+        ? `AI categories cover ${pct}; grouping by language until then`
+        : `AI categories cover ${pct} and cannot progress without ai-provider and ai-api-key; grouping by language`,
     );
     return "language";
   }
