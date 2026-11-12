@@ -102,20 +102,51 @@ config that still names it gets a warning and runs without AI. On a provider wit
 limit, space the calls with `ai-min-interval-ms`. When the provider answers with a long
 `Retry-After`, the run stops the AI work and keeps what it has.
 
-## Static site and feed
+## Website
+
+`site-dir` writes a searchable website next to the list:
+
+- `index.html`: a single file with no dependencies. It has search, group and language filters,
+  sorting and dark mode, and the URL keeps the filter state so a view can be shared.
+- `stars.json`: one repository per line.
+- `feed.xml`: an Atom feed of your latest stars.
+
+`site-url` adds a "Search all N stars" link under the README badges, plus sharing tags on the site.
+
+To publish it with GitHub Pages, set **Settings → Pages → Source** to **GitHub Actions** and deploy
+the folder in the same workflow:
 
 ```yaml
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  stars:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v7
       - uses: maxgfr/starsmith@v1
         with:
-          html-output: docs/index.html
-          json-output: docs/stars.json
-          feed-output: docs/feed.xml
+          site-dir: docs
+          site-url: https://<you>.github.io/<repo>/
+      - uses: actions/configure-pages@v6
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: docs
+      - id: deploy
+        uses: actions/deploy-pages@v5
 ```
 
-`docs/index.html` is a single file with no dependencies. It offers search, group and language
-filters, sorting and dark mode, and the URL keeps the filter state so a view can be shared. To
-serve it, enable GitHub Pages with **Deploy from a branch** on the `/docs` folder. `stars.json`
-has one repository per line and `feed.xml` is an Atom feed of your latest stars.
+Deploying from a branch (`/docs` folder) also works, since the folder ships a `.nojekyll`. Note
+that commits made with the workflow token may not trigger a branch build, so the Actions deploy
+above is the reliable way.
+
+The single outputs remain available: `html-output`, `json-output`, `feed-output`.
 
 ## Options
 
@@ -135,7 +166,9 @@ Every option can be an input of the step, or a key of `.github/starsmith.yml` (i
 | `split-dir` | `stars` | Folder of the per-group files, next to `output` |
 | `split-threshold` | `500` | KB. The index also stays under it: previews are dropped if needed |
 | `split-preview` | `5` | Repositories of each group kept in the index, then a link to the full file. `0`: links only |
-| `html-output`, `json-output`, `feed-output` | | Extra outputs |
+| `site-dir` | | Folder of the [website](#website): `index.html`, `stars.json`, `feed.xml` |
+| `site-url` | | Public URL of the site: search link in the README, sharing tags |
+| `html-output`, `json-output`, `feed-output` | | Single outputs (filled in by `site-dir`) |
 | `feed-size` | `50` | |
 
 ### Layout

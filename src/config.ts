@@ -125,6 +125,8 @@ const schema = z.object({
   header: str(),
   footer: str(),
 
+  "site-dir": str(),
+  "site-url": str(),
   "html-output": str(),
   "json-output": str(),
   "feed-output": str(),
@@ -206,6 +208,10 @@ export interface Config {
   backToTop: boolean;
   header: string;
   footer: string;
+  /** Folder of the site (index.html, stars.json, feed.xml), e.g. docs for GitHub Pages. */
+  siteDir: string;
+  /** Public URL of the site, with a trailing slash; empty when unknown. */
+  siteUrl: string;
   htmlOutput: string;
   jsonOutput: string;
   feedOutput: string;
@@ -237,6 +243,7 @@ export interface AiConfig {
 
 function toConfig(p: Parsed): Config {
   const provider = p["ai-provider"];
+  const siteDir = p["site-dir"].trim().replace(/^\.\/|\/+$/g, "");
   return {
     token: p.token,
     username: p.username,
@@ -281,9 +288,12 @@ function toConfig(p: Parsed): Config {
     backToTop: p["back-to-top"],
     header: p.header,
     footer: p.footer,
-    htmlOutput: p["html-output"],
-    jsonOutput: p["json-output"],
-    feedOutput: p["feed-output"],
+    siteDir: siteDir,
+    siteUrl: p["site-url"].trim() ? p["site-url"].trim().replace(/\/*$/, "/") : "",
+    // site-dir fills in the outputs a site needs; an explicit output still wins.
+    htmlOutput: p["html-output"] || (siteDir && `${siteDir}/index.html`),
+    jsonOutput: p["json-output"] || (siteDir && `${siteDir}/stars.json`),
+    feedOutput: p["feed-output"] || (siteDir && `${siteDir}/feed.xml`),
     feedSize: p["feed-size"],
     ai: {
       enabled: p.ai,

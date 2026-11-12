@@ -25,6 +25,8 @@ export interface RenderModel {
   pinned: Entry[];
   recent: Entry[];
   digest: { text: string; count: number; days: number } | null;
+  /** Public URL of the site, linked under the badges when set. */
+  siteUrl?: string;
 }
 
 export interface OutputFile {
@@ -125,7 +127,10 @@ function header(model: RenderModel): string {
     `![${t.total}](https://img.shields.io/badge/${shieldsText(t.total)}-${entries.length}-green.svg)`,
     `![${t.updated}](https://img.shields.io/badge/${shieldsText(t.updated)}-${UPDATED_BADGE}-blue.svg)`,
   ].join(" ");
-  return `# ${config.title}\n\n> ${description}\n\n${badges}`;
+  const search = model.siteUrl
+    ? `\n\n**[${format(t.searchSite, { count: entries.length.toLocaleString("en-US") })}](${model.siteUrl})**`
+    : "";
+  return `# ${config.title}\n\n> ${description}\n\n${badges}${search}`;
 }
 
 function legend(model: RenderModel): string {

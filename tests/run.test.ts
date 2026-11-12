@@ -137,6 +137,34 @@ describe("run", () => {
     expect(html).toContain('<meta name="description" content="Built with starsmith &lt;b&gt;x&lt;/b&gt;');
   });
 
+  test("site-dir writes a website, site-url links it", async () => {
+    const ws = tempDir();
+    const result = await go(ws, { "site-dir": "docs", "site-url": "https://me.github.io/stars" });
+    expect(result.files).toEqual(
+      expect.arrayContaining(["docs/index.html", "docs/stars.json", "docs/feed.xml", "docs/.nojekyll"]),
+    );
+    const readme = readFileSync(join(ws, "README.md"), "utf8");
+    expect(readme).toContain("**[🔎 Search all 8 stars](https://me.github.io/stars/)**");
+    const html = readFileSync(join(ws, "docs/index.html"), "utf8");
+    expect(html).toContain('<link rel="canonical" href="https://me.github.io/stars/">');
+    expect(html).toContain(
+      '<link rel="alternate" type="application/atom+xml" title="Awesome Stars" href="feed.xml">',
+    );
+    expect(html).toContain('<a href="stars.json">JSON data</a>');
+    expect(html).toContain("8 repositories · 5 languages · 6 groups");
+    expect(readFileSync(join(ws, "docs/feed.xml"), "utf8")).toContain(
+      '<link href="https://me.github.io/stars/"/>',
+    );
+  });
+
+  test("an explicit output wins over site-dir", async () => {
+    const ws = tempDir();
+    const result = await go(ws, { "site-dir": "docs", "html-output": "index.html" });
+    expect(result.files).toContain("index.html");
+    expect(result.files).not.toContain("docs/index.html");
+    expect(result.files).toContain("docs/stars.json");
+  });
+
   test("french locale", async () => {
     const ws = tempDir();
     await go(ws, { locale: "fr" });
