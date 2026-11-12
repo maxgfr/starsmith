@@ -38,3 +38,41 @@ jobs:
           languages: zig,nim
           html-output: site/index.html
       - run: test "${{ steps.stars.outputs.total }}" -gt 0
+
+  # Every push to main that passes the checks is released: semantic-release reads the conventional
+  # commits (fix → patch, feat → minor), tags vX.Y.Z and writes the GitHub release; the major tag
+  # (v1) then moves to it, so `uses: maxgfr/starsmith@v1` follows. Done here rather than in a
+  # workflow triggered by the release: a release made with the workflow token triggers nothing.
+  release:
+    needs: [check, smoke]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: oven-sh/setup-bun@v2
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - run: bun install --frozen-lockfile
+      - name: Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npx --no-install semantic-release
+      - name: Move the major tag
+        run: |
+          git fetch --tags --force
+          TAG=$(git tag --points-at HEAD | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -1)
+          if [ -z "$TAG" ]; then
+            echo "No release on this commit"
+            exit 0
+          fi
+          MAJOR="${TAG%%.*}"
+          git tag -f "$MAJOR" "$TAG"
+          git push -f origin "refs/tags/$MAJOR"
+          echo "$MAJOR now points to $TAG"
