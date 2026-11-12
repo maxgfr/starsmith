@@ -14,7 +14,7 @@
         "@octokit/graphql": "^9.0.5",
         "ai": "^7.0.170",
         "llm-connect": "^2.10.0",
-        "llm-models": "^1.16.0",
+        "llm-models": "^1.16.1",
         "yaml": "^2.9.1",
         "zod": "^4.6.7",
       },
@@ -302,7 +302,7 @@
 
     "llm-connect": ["llm-connect@2.10.0", "", { "dependencies": { "llm-models": "^1.16.0" }, "peerDependencies": { "@ai-sdk/anthropic": "^4.0.0", "@ai-sdk/elevenlabs": "^3.0.0", "@ai-sdk/fal": "^3.0.0", "@ai-sdk/gateway": "^4.0.0", "@ai-sdk/google": "^4.0.0", "@ai-sdk/mistral": "^4.0.0", "@ai-sdk/openai": "^4.0.0", "@ai-sdk/openai-compatible": "^3.0.0", "@ai-sdk/replicate": "^3.0.0", "@ai-sdk/xai": "^5.0.0", "@huggingface/transformers": "^4.0.0", "ai": "^7.0.0", "onnxruntime-web": ">=1.22.0", "react": ">=18" }, "optionalPeers": ["@ai-sdk/anthropic", "@ai-sdk/elevenlabs", "@ai-sdk/fal", "@ai-sdk/gateway", "@ai-sdk/google", "@ai-sdk/mistral", "@ai-sdk/openai", "@ai-sdk/openai-compatible", "@ai-sdk/replicate", "@ai-sdk/xai", "@huggingface/transformers", "ai", "onnxruntime-web", "react"] }, "sha512-OP5XjSRnh4jI4DpColjleP4asJULIS51V8gNzBxVze8PgmWaxC2mahRVyZzvpsVNNaqH6ucxVYJfzp6Yq0OaBQ=="],
 
-    "llm-models": ["llm-models@1.16.0", "", { "dependencies": { "@modelcontextprotocol/sdk": "^1.32.0", "commander": "^15.0.0", "zod": "^4.6.6" }, "bin": { "llm-models": "build/index.js" } }, "sha512-v5ffSdpKwMXN1w8/xV5cmayEPzzHXuMEW7rf9bIu9Yy9kgkxDgiK4Ld1OEsnnw0fGF3a6ymL7GEz0odglkIdAg=="],
+    "llm-models": ["llm-models@1.16.1", "", { "dependencies": { "@modelcontextprotocol/sdk": "^1.32.0", "commander": "^15.0.0", "zod": "^4.6.6" }, "bin": { "llm-models": "bin/llm-models.js" } }, "sha512-fXwSEyDgpUL+gl5OgXHIhlE8zW/pZ0EBfgmboyFknkbJNydtDXoRuaon5HVLMIvUidiqoobqIAVQEWGW2p+xpA=="],
 
     "math-intrinsics": ["math-intrinsics@1.1.0", "", {}, "sha512-/IXtbwEk5HTPyEwyKX6hGkYXxM9nbj64B+ilVJnC/R6B0pH5G4V3b0pVbL7DBj4tkhBAppbQUlf6F6Xl9LHu1g=="],
 

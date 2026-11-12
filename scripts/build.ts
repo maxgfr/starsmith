@@ -23,7 +23,6 @@ await build({
     "@huggingface/transformers",
     "@ai-sdk/fal",
     "@ai-sdk/xai",
-    "@ai-sdk/gateway",
     "@ai-sdk/replicate",
     "@ai-sdk/elevenlabs",
   ],
